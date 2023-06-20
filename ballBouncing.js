@@ -23,17 +23,15 @@ function Ball(x, y, gravity, diameter) {
   this.position = createVector(x, y)
   this.diameter = diameter
   this.m = this.diameter * 0.1
-  this.rotation = random(0, 2 * PI)
+  this.rotation = random(0, 360)
   this.gravity = createVector(0, gravity)
 }
 
 Ball.prototype.run = function (balls, frameCount, currentBall) {
-
   this.update()
   this.collisionDetection(balls, currentBall)
   this.calculatePosition()
   this.render()
-
 }
 
 Ball.prototype.update = function () {
@@ -112,15 +110,14 @@ Ball.prototype.collisionDetection = function (balls, currentBall) {
 }
 
 Ball.prototype.render = function () {
-
   push()
   fill(199, 242, 97)
   stroke('white')
   strokeWeight(1)
   translate(this.position.x, this.position.y)
-  rotate(this.rotation)
   ellipse(0, 0, this.diameter, this.diameter)
   push()
+  rotate(this.rotation)
   strokeWeight(2)
   beginShape()
   vertex(0, -this.diameter / 2)

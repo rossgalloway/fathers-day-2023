@@ -23,17 +23,6 @@ let loopNumber = 0
 let pointsToAvoid = []
 let gravity = 0.8
 
-function addBalls(titleTextObjects, Balls, numPerVertex, gravity) {
-  for (const titleTextObject of titleTextObjects) {
-    for (const vertex of titleTextObject.offsetVertices) {
-      for (let i = 0; i < numPerVertex; i++) {
-        const b = new Ball(vertex[0], vertex[1], gravity)
-        Balls.addBall(b)
-      }
-    }
-  }
-}
-
 function drawCourtLines(titleWidth, titleHeight) {
   push()
   translate(
