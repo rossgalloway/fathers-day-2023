@@ -23,20 +23,17 @@ function Ball(x, y, gravity, diameter) {
   this.position = createVector(x, y)
   this.diameter = diameter
   this.m = this.diameter * 0.1
-  //   this.maxspeed = 5 // Maximum speed
+  this.rotation = random(0, 2 * PI)
   this.gravity = createVector(0, gravity)
 }
 
 Ball.prototype.run = function (balls, frameCount, currentBall) {
-  //   if (frameCount > 400) {
-  //   }
+
   this.update()
   this.collisionDetection(balls, currentBall)
   this.calculatePosition()
   this.render()
-  //   console.log(balls[7].position)
-  //   this.update()
-  //   this.borders()
+
 }
 
 Ball.prototype.update = function () {
@@ -62,25 +59,11 @@ Ball.prototype.calculatePosition = function () {
   this.velocity = this.velocity.mult(0.999)
 }
 
-/**
- * location of ball (x,y)
- * location of all other balls in array
- * if location of ball is within range (1 diameter) then reverse vector
- * move ball slightly in that direction
- */
 Ball.prototype.collisionDetection = function (balls, currentBall) {
   // For every ball in the system, check if it's too close
   for (let i = 0; i < balls.length; i++) {
     if (i !== currentBall) {
       let distanceVect = p5.Vector.sub(balls[i].position, this.position)
-      //   let dvCopy = distanceVect.copy()
-      //   let distNorm = dvCopy.normalize().mult(100)
-      //   line(
-      //     this.position.x,
-      //     this.position.y,
-      //     this.position.x + distNorm.x,
-      //     this.position.y + distNorm.y
-      //   )
       let distanceVectMag = distanceVect.mag()
       let r = this.diameter / 2
       let r_Other = balls[i].diameter / 2
@@ -129,15 +112,32 @@ Ball.prototype.collisionDetection = function (balls, currentBall) {
 }
 
 Ball.prototype.render = function () {
-  // Draw a circle rotated in the direction of velocity
-  //   let theta = this.velocity.heading() + radians(90)
+
   push()
   fill(199, 242, 97)
-  stroke(135, 219, 86)
-  strokeWeight(2)
+  stroke('white')
+  strokeWeight(1)
   translate(this.position.x, this.position.y)
-  //   rotate(theta)
+  rotate(this.rotation)
   ellipse(0, 0, this.diameter, this.diameter)
+  push()
+  strokeWeight(2)
+  beginShape()
+  vertex(0, -this.diameter / 2)
+  bezierVertex(
+    0,
+    -this.diameter / 4,
+    -this.diameter / 4,
+    0,
+    -this.diameter / 2,
+    0
+  )
+  endShape()
+  beginShape()
+  vertex(0, this.diameter / 2)
+  bezierVertex(0, this.diameter / 4, this.diameter / 4, 0, this.diameter / 2, 0)
+  endShape()
+  pop()
   pop()
 }
 

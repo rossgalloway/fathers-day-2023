@@ -5,8 +5,8 @@ let popDelay = FRAME_RATE / 8
 let popFrame
 let titleScale = 1.5
 // these next 3 variables are determined by the text
-const titleWidth = 401
-const titleHeight = 288
+const titleWidth = 700
+const titleHeight = 410
 const baselineTitleSpacing = 100
 let AdditionalTitleSpacing = 0
 
@@ -34,23 +34,95 @@ function addBalls(titleTextObjects, Balls, numPerVertex, gravity) {
   }
 }
 
+function drawCourtLines(titleWidth, titleHeight) {
+  push()
+  translate(
+    (width - titleWidth * titleScale) / 2,
+    (height - titleHeight * titleScale) / 2
+  )
+  line(0, 0, 0, 10000)
+  line(-200, 0, -200, 10000)
+  line(titleWidth * titleScale, 0, titleWidth * titleScale, 10000)
+  line(titleWidth * titleScale + 200, 0, titleWidth * titleScale + 200, 10000)
+  line(-200, 0, titleWidth * titleScale + 200, 0)
+  line(
+    0,
+    titleHeight * titleScale,
+    titleWidth * titleScale,
+    titleHeight * titleScale
+  )
+  line(
+    (titleWidth * titleScale) / 2,
+    titleHeight * titleScale,
+    (titleWidth * titleScale) / 2,
+    10000
+  )
+  pop()
+}
+
+function drawBelated() {
+  push()
+  fill(255)
+  strokeWeight(1)
+  textSize(75)
+  translate(width / 2 - 300, height / 2 + 150)
+  angleMode(DEGREES)
+  rotate(15)
+  text('belated', 0, 0)
+  translate(50, -50)
+  push()
+  noFill()
+  strokeWeight(2)
+  beginShape()
+  vertex(0, 0)
+  vertex(25, -25)
+  vertex(50, 0)
+  endShape()
+  pop()
+  pop()
+}
+
+function drawClickInstruction() {
+  push()
+  fill(255)
+  strokeWeight(1)
+  textSize(50)
+  translate(
+    (width + titleWidth * titleScale) / 2 + 200,
+    (height - titleHeight * titleScale) / 2
+  )
+  textAlign(RIGHT, BOTTOM)
+  text('click to launch the balls!', 0, 0)
+  pop()
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight)
   frameRate(FRAME_RATE)
+  textFont(loadFont('public/ARCHITEX.TTF'))
 
+  /**
+   * get additional points and data for text objects to draw them with anims
+   */
   for (shape of textObjects) {
     getVertexArrays(shape, titleScale, textStart_X, textStart_Y)
     pointsToAvoid.push(...shape.offsetVertices)
   }
   console.log(textObjects)
+  let animDuration = 0
+  for (object of textObjects) {
+    animDuration += object.duration
+  }
+  for (object of textObjects) {
+    object.durationPercentage = object.duration / animDuration
+  }
 
   // create new Flock object
   allBalls = new Balls()
 
   //Add boids into the system
-
   let ballDiameter = 25
-  let dropPoints = windowWidth / ballDiameter
+  let dropPoints = windowWidth / ballDiameter + 1
   for (let i = 1; i < dropPoints; i++) {
     const b = new Ball(
       (i * width) / dropPoints,
@@ -60,8 +132,6 @@ function setup() {
     )
     allBalls.addBall(b)
   }
-
-  // addBalls(textObjects, allBalls, 1, gravity)
 }
 
 function mouseClicked() {
@@ -107,6 +177,12 @@ function draw() {
   } else {
     strokeWeight(1)
     noFill()
+    background('#4D7DC4')
+    strokeWeight(5)
+    stroke('white')
+    drawCourtLines(titleWidth, titleHeight)
+    drawBelated()
+    drawClickInstruction()
     allBalls.run(frameCount)
     if (!haveBallsPopped) {
       popFrame = frameCount
@@ -122,49 +198,36 @@ function draw() {
         ball.setVelocity(random(-10, 10), random(-30, -40))
       })
     }
-    strokeWeight(2)
-    stroke(40, 20, 20)
   }
 
   push()
   noFill()
   translate(
     (width - titleWidth * titleScale) / 2,
-    (height - titleHeight * titleScale - AdditionalTitleSpacing) / 2
+    (height - titleHeight * titleScale) / 2
   )
 
-  animS.shape('01', DURATION * 0.04, text_H_line1.scaledBezierVertices)
-  if (frameCount > DURATION * 0.04) {
-    animS.shape('02', DURATION * 0.08, text_H_line2.scaledBezierVertices)
-  }
-  if (frameCount > DURATION * 0.08) {
-    animS.shape('03', DURATION * 0.3, text_appy.scaledBezierVertices)
-  }
-  if (frameCount > DURATION * 0.43) {
-    animS.shape('04', DURATION * 0.04, text_B_line.scaledBezierVertices)
-  }
-  if (frameCount > DURATION * 0.47) {
-    animS.shape('05', DURATION * 0.38, text_irthday.scaledBezierVertices)
-  }
-  if (frameCount > DURATION * 0.85) {
-    animS.shape('07', DURATION * 0.04, text_crossedT.scaledBezierVertices)
-  }
-  if (frameCount > DURATION * 0.89) {
-    animS.shape(
-      '06',
-      DURATION * 0.04,
-      text_exclamation_line.scaledBezierVertices
-    )
-  }
-  if (frameCount > DURATION * 0.93) {
-    animS.shape(
-      '09',
-      DURATION * 0.04,
-      text_heart_exclamation_point.scaledBezierVertices
-    )
-  }
-  if (frameCount > DURATION * 0.97) {
-    animS.shape('08', DURATION * 0.03, text_heart_on_I.scaledBezierVertices)
+  /**
+   * get total duration from looping over textShapes in textObjects array
+   * find multiplier to determine actual length for each shape animation
+   */
+  let percentageComplete = 0
+  animS.shape(
+    '01',
+    DURATION * textShape1.durationPercentage,
+    textShape1.scaledBezierVertices
+  )
+  percentageComplete += textShape1.durationPercentage
+
+  for (let i = 1; i < textObjects.length; i++) {
+    if (frameCount > DURATION * percentageComplete) {
+      animS.shape(
+        textObjects[i].text,
+        DURATION * textObjects[i].durationPercentage,
+        textObjects[i].scaledBezierVertices
+      )
+      percentageComplete += textObjects[i].durationPercentage
+    }
   }
   pop()
 }
