@@ -26,19 +26,20 @@ Flock.prototype.addBoid = function (b) {
 
 function Boid(x, y) {
   this.acceleration = createVector(0, 0)
-  this.velocity = createVector(random(-150, 150), random(-150, 150))
+  this.velocity = createVector(random(-150, 150), random(-500, -1500))
   this.position = createVector(x, y)
   this.rFind = 25.0
-  this.maxspeed = 10 // Maximum speed
+  this.maxspeed = 5 // Maximum speed
   this.maxforce = 0.1 // Maximum steering force
   this.wingFlapCadence = random(1, 6)
 }
 
 Boid.prototype.run = function (boids) {
-  this.flock(boids)
+  gravity = this.flock(boids)
+  // this.collisionDetection(boids)
   this.update()
   //add boolean passed in to borders to trigger on initial mouse click
-  this.borders()
+  this.borders(gravity)
   this.render()
 }
 
@@ -49,27 +50,31 @@ Boid.prototype.applyForce = function (force) {
 
 // We accumulate a new acceleration each time based on three rules
 Boid.prototype.flock = function (boids) {
-  let sep = this.separate(boids) // Separation
-  let ali = this.align(boids) // Alignment
-  let coh = this.cohesion(boids) // Cohesion
+  // let sep = this.separate(boids) // Separation
+  // let ali = this.align(boids) // Alignment
+  // let coh = this.cohesion(boids) // Cohesion
   let avoidMouse = this.avoidMouse()
+  let grav = this.gravity()
   //TODO add other vertices
-  let avoidTitle = this.avoidTitle(pointsToAvoid)
-  let topPull = this.topPull()
+  // let avoidTitle = this.avoidTitle(pointsToAvoid)
+  // let topPull = this.topPull()
   // Arbitrarily weight these forces
-  sep.mult(2)
-  ali.mult(1)
-  coh.mult(1)
-  topPull.mult(1)
+  // sep.mult(10)
+  // ali.mult(1)
+  // coh.mult(1)
+  // topPull.mult(-5)
   avoidMouse.mult(50)
-  avoidTitle.mult(4)
+  multGrav = grav.mult(1)
+  // avoidTitle.mult(4)
   // Add the force vectors to acceleration
-  this.applyForce(sep)
-  this.applyForce(ali)
-  this.applyForce(coh)
-  this.applyForce(topPull)
+  // this.applyForce(sep)
+  // this.applyForce(ali)
+  // this.applyForce(coh)
+  // this.applyForce(topPull)
   this.applyForce(avoidMouse)
-  this.applyForce(avoidTitle)
+  this.applyForce(grav)
+  // this.applyForce(avoidTitle)
+  return multGrav
 }
 
 // Method to update location
@@ -104,76 +109,91 @@ Boid.prototype.render = function () {
   push()
   translate(this.position.x, this.position.y)
   rotate(theta)
-  wingTiming = flappyCounter + this.wingFlapCadence
-  wingG = map(sin(wingTiming), -1, 1, 180, 150)
-  wingB = map(sin(wingTiming), -1, 1, 200, 180)
-  fill(255, wingG, wingB)
-  heartFlapPosition1 = map(
-    sin(wingTiming),
-    -1,
-    1,
-    1.0 * this.rFind,
-    0.4 * this.rFind
-  )
-  heartFlapPosition2 = map(
-    sin(wingTiming),
-    -1,
-    1,
-    0.66 * this.rFind,
-    0.33 * this.rFind
-  )
-  heartFlapPosition3 = map(
-    sin(wingTiming),
-    -1,
-    1,
-    -0.92 * this.rFind,
-    -0.85 * this.rFind
-  )
-  heartFlapPosition4 = map(
-    sin(wingTiming),
-    -1,
-    1,
-    1.25 * this.rFind,
-    1.33 * this.rFind
-  )
+  ellipse(0, 0, this.rFind, this.rFind)
+  // wingTiming = flappyCounter + this.wingFlapCadence
+  // wingG = map(sin(wingTiming), -1, 1, 180, 150)
+  // wingB = map(sin(wingTiming), -1, 1, 200, 180)
+  // fill(255, wingG, wingB)
+  // heartFlapPosition1 = map(
+  //   sin(wingTiming),
+  //   -1,
+  //   1,
+  //   1.0 * this.rFind,
+  //   0.4 * this.rFind
+  // )
+  // heartFlapPosition2 = map(
+  //   sin(wingTiming),
+  //   -1,
+  //   1,
+  //   0.66 * this.rFind,
+  //   0.33 * this.rFind
+  // )
+  // heartFlapPosition3 = map(
+  //   sin(wingTiming),
+  //   -1,
+  //   1,
+  //   -0.92 * this.rFind,
+  //   -0.85 * this.rFind
+  // )
+  // heartFlapPosition4 = map(
+  //   sin(wingTiming),
+  //   -1,
+  //   1,
+  //   1.25 * this.rFind,
+  //   1.33 * this.rFind
+  // )
 
-  cofH = 0
-  bofH = heartFlapPosition4
-  rofH = heartFlapPosition1
-  bezTop = heartFlapPosition3
-  bezAX = heartFlapPosition2
-  bezAY = 0.66 * this.rFind
-  bezBX = rofH
-  bezBY = 0.36 * this.rFind
+  // cofH = 0
+  // bofH = heartFlapPosition4
+  // rofH = heartFlapPosition1
+  // bezTop = heartFlapPosition3
+  // bezAX = heartFlapPosition2
+  // bezAY = 0.66 * this.rFind
+  // bezBX = rofH
+  // bezBY = 0.36 * this.rFind
 
-  beginShape()
-  vertex(cofH, bofH) // bottom of heart
-  bezierVertex(bezAX, bezAY, bezBX, bezBY, rofH, cofH)
-  bezierVertex(rofH, bezTop, cofH, bezTop, cofH, cofH)
-  endShape(CLOSE)
-  beginShape()
-  vertex(cofH, bofH) // bottom of heart
-  bezierVertex(-bezAX, bezAY, -bezBX, bezBY, -rofH, cofH)
-  bezierVertex(-rofH, bezTop, cofH, bezTop, cofH, cofH)
-  endShape(CLOSE)
+  // beginShape()
+  // vertex(cofH, bofH) // bottom of heart
+  // bezierVertex(bezAX, bezAY, bezBX, bezBY, rofH, cofH)
+  // bezierVertex(rofH, bezTop, cofH, bezTop, cofH, cofH)
+  // endShape(CLOSE)
+  // beginShape()
+  // vertex(cofH, bofH) // bottom of heart
+  // bezierVertex(-bezAX, bezAY, -bezBX, bezBY, -rofH, cofH)
+  // bezierVertex(-rofH, bezTop, cofH, bezTop, cofH, cofH)
+  // endShape(CLOSE)
   pop()
 }
 
 // Wraparound
 //TODO: start with close borders and expand on click.
-Boid.prototype.borders = function () {
-  if (this.position.x < 0 - this.rFind) this.position.x = width + this.rFind
-  if (this.position.y < -height * 0.25 - this.rFind)
-    this.position.y = height * 3 + this.rFind
-  if (this.position.x > width + this.rFind) this.position.x = 0 - this.rFind
-  if (this.position.y > height * 3 + this.rFind)
-    this.position.y = -height * 0.25 - this.rFind
+Boid.prototype.borders = function (gravity) {
+  if (this.position.x < 0 - this.rFind)
+    this.velocity.x = -this.velocity.x * 0.75
+  if (this.position.y < 0 - this.rFind)
+    this.velocity.y = -this.velocity.y * 0.75
+  if (this.position.x > width - this.rFind)
+    this.velocity.x = -this.velocity.x * 0.75
+  if (this.position.y > height - this.rFind) this.velocity.y = 0
+  this.applyForce(gravity * -1)
+}
+
+Boid.prototype.collisionDetection = function (boids) {
+  let desiredSeparation = this.rFind
+  // For every boid in the system, check if it's too close
+  for (let i = 0; i < boids.length; i++) {
+    let d = p5.Vector.dist(this.position, boids[i].position)
+    // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
+    if (d < desiredSeparation) {
+      this.velocity.mult(-1 * 0.75)
+    }
+  }
 }
 
 // Separation
 // Method checks for nearby boids and steers away
 Boid.prototype.separate = function (boids) {
-  let desiredSeparation = 200.0
+  let desiredSeparation = this.rFind
   let steer = createVector(0, 0)
   let count = 0
   // For every boid in the system, check if it's too close
@@ -243,7 +263,7 @@ Boid.prototype.avoidMouse = function () {
 // Title Avoidance
 // Method checks for the mouse location and steers away
 Boid.prototype.avoidTitle = function (textVertices) {
-  let desiredSeparation = 150.0
+  let desiredSeparation = 50.0
   let steer = createVector(0, 0)
   let count = 0
   // For every boid in the system, check if it's too close
@@ -276,39 +296,38 @@ Boid.prototype.avoidTitle = function (textVertices) {
   return steer
 }
 
-// Top Attractor
+// gravity
 // Method steers toward the top of the canvas
-Boid.prototype.topPull = function () {
-  let desiredSeparation = height * 3
-  let steer = createVector(0, 0)
-  let count = 0
-  // For every boid in the system, check if it's too close
-  var topVector = createVector(this.position.x, height * 3)
-  let d = p5.Vector.dist(this.position, topVector)
-  // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
-  if (d > 0 && d < desiredSeparation) {
-    // Calculate vector pointing away from neighbor
-    let diff = p5.Vector.sub(this.position, topVector)
-    diff.normalize()
-    // diff.div(d) // Weight by distance
-    steer.add(diff)
-    count++ // Keep track of how many
-  }
+Boid.prototype.gravity = function () {
+  let gravity = createVector(0, height)
+  // let count = 0
+  // // For every boid in the system, check if it's too close
+  // var topVector = createVector(this.position.x, height)
+  // let d = p5.Vector.dist(this.position, topVector)
+  // // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
+  // if (d > 0 && d < desiredSeparation) {
+  //   // Calculate vector pointing away from neighbor
+  //   let diff = p5.Vector.sub(this.position, topVector)
+  //   diff.normalize()
+  //   // diff.div(d) // Weight by distance
+  //   steer.add(diff)
+  //   count++ // Keep track of how many
+  // }
 
-  // Average -- divide by how many
-  if (count > 0) {
-    steer.div(count)
-  }
+  // // Average -- divide by how many
+  // if (count > 0) {
+  //   steer.div(count)
+  // }
 
-  // As long as the vector is greater than 0
-  if (steer.mag() > 0) {
-    // Implement Reynolds: Steering = Desired - Velocity
-    steer.normalize()
-    steer.mult(this.maxspeed)
-    steer.sub(this.velocity)
-    steer.limit(this.maxforce)
-  }
-  return steer
+  // // As long as the vector is greater than 0
+  // if (steer.mag() > 0) {
+  //   // Implement Reynolds: Steering = Desired - Velocity
+  gravity.normalize()
+  gravity.mult(this.maxspeed)
+  gravity.sub(this.velocity)
+  gravity.limit(this.maxforce)
+  // }
+  return gravity
 }
 
 // Alignment

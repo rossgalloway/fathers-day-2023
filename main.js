@@ -1,5 +1,8 @@
 const FRAME_RATE = 30
 const DURATION = FRAME_RATE * 6
+let haveBallsPopped = false
+let popDelay = FRAME_RATE / 8
+let popFrame
 let titleScale = 1.5
 // these next 3 variables are determined by the text
 const titleWidth = 401
@@ -18,13 +21,14 @@ let flappyCounter = 0
 let flappyModulo = 0
 let loopNumber = 0
 let pointsToAvoid = []
+let gravity = 0.8
 
-function addBoids(titleTextObjects, flock, numPerVertex) {
+function addBalls(titleTextObjects, Balls, numPerVertex, gravity) {
   for (const titleTextObject of titleTextObjects) {
     for (const vertex of titleTextObject.offsetVertices) {
       for (let i = 0; i < numPerVertex; i++) {
-        const b = new Boid(vertex[0], vertex[1])
-        flock.addBoid(b)
+        const b = new Ball(vertex[0], vertex[1], gravity)
+        Balls.addBall(b)
       }
     }
   }
@@ -41,9 +45,30 @@ function setup() {
   console.log(textObjects)
 
   // create new Flock object
-  mainFlock = new Flock()
-  // Add boids into the system
-  addBoids(textObjects, mainFlock, 2)
+  allBalls = new Balls()
+
+  //Add boids into the system
+
+  let ballDiameter = 25
+  let dropPoints = windowWidth / ballDiameter
+  for (let i = 1; i < dropPoints; i++) {
+    const b = new Ball(
+      (i * width) / dropPoints,
+      height - 50,
+      gravity,
+      ballDiameter
+    )
+    allBalls.addBall(b)
+  }
+
+  // addBalls(textObjects, allBalls, 1, gravity)
+}
+
+function mouseClicked() {
+  allBalls.balls.forEach((ball) => {
+    ball.setVelocity(random(-10, 10), random(-30, -40))
+  })
+  console.log('pop!')
 }
 
 function draw() {
@@ -82,7 +107,21 @@ function draw() {
   } else {
     strokeWeight(1)
     noFill()
-    mainFlock.run()
+    allBalls.run(frameCount)
+    if (!haveBallsPopped) {
+      popFrame = frameCount
+      console.log('popFrame: ', popFrame)
+      haveBallsPopped = true
+    }
+    if (
+      frameCount > popFrame + popDelay &&
+      frameCount < popFrame + popDelay + 1
+    ) {
+      console.log('second pop!')
+      allBalls.balls.forEach((ball) => {
+        ball.setVelocity(random(-10, 10), random(-30, -40))
+      })
+    }
     strokeWeight(2)
     stroke(40, 20, 20)
   }
